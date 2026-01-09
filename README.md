@@ -62,11 +62,11 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 ```
-
+  
 ---
-
+  
 ## ▶️ Usage
-
+  
 ### 1️⃣ Initialize Storage (Required)
 Generate RSA Keys dan setup storage
 ```bash
@@ -74,7 +74,7 @@ python cli_storage.py init
 ```
 ### 2️⃣ Encrypt File
 ```bash
-python cli_storage.py encrypt <file_path>\
+python cli_storage.py encrypt <file_path>
 ```
 contoh : 
 ```bash
@@ -105,9 +105,9 @@ python cli_storage.py info
 python cli_storage.py keygen
 ```
 **Warning:** Key baru akan membuat file lama tidak bisa didekripsi
-
+  
 ---
-
+  
 ## 🔐 Encryption Flow
 
 File Asli
@@ -119,23 +119,23 @@ Data Terenkripsi
 Metadata → RSA 2048-bit Encryption
    ↓
 Stored Securely
-
+  
 ---
-
+  
 ## 📁 Project Structure
 
-app/backend/
-├── cli_storage.py
-├── crypto_engine.py
-├── key_manager.py
-├── file_manager.py
-├── requirements.txt
-└── secure_storage/
-    ├── keys/
-    └── encrypted_files/
-
+app/backend/ \
+├── cli_storage.py \
+├── crypto_engine.py \
+├── key_manager.py \
+├── file_manager.py \
+├── requirements.txt \
+└── secure_storage/ \
+   <t>├── keys/ \
+   <t>└── encrypted_files/.
+    
 ---
-
+  
 ## 🔒 Security Notes
 
 - RSA 2048-bit + OAEP (SHA-256)
@@ -155,14 +155,13 @@ app/backend/
 ---
 
 ## 🎓 Academic Purpose
-
 Project ini dibuat sebagai implementasi kriptografi hybrid untuk kebutuhan pembelajaran dan tugas akhir mata kuliah kriptografi.
 
 --- 
-
+ 
 ## 👤 Author
 
-**Angela Echa Naresti**
-A11.2024.15971
-A11.43UG1
+**Angela Echa Naresti**\
+A11.2024.15971\
+A11.43UG1.
 
