@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# 1. Define where the project lives
+# Replace this with your actual output from 'pwd'
+PROJECT_DIR="/home/aen/hybrid-cli-storage/app/backend"
+
+# 2. Enter the directory (Fixes import errors for crypto_engine, etc.)
+cd "$PROJECT_DIR"
+
+# 3. Run the python script, passing all arguments ($@) to it
+# If you use a virtual environment, use "venv/bin/python" instead of just "python"
+python3 cli_storage.py "$@"
