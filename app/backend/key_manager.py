@@ -42,7 +42,7 @@ class KeyManager:
             encryption_algorithm=serialization.NoEncryption()
         )
         self.private_key_path.write_bytes(pem)
-        os.chmod(self.private_key_path, 0o600)  # Protect private key
+        os.chmod(self.private_key_path, 0o600)
 
     def _save_public_key(self, public_key):
         """Save public key to file"""

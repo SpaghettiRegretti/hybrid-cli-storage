@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CLI File Storage dengan Hybrid Encryption (Modified Caesar + RSA)"""
+"""CLI File Storage dengan Hybrid Encryption (Modified Caesar + RSA) - Multi User"""
 import typer
 from pathlib import Path
 from rich.console import Console
@@ -8,9 +8,11 @@ from rich.panel import Panel
 from rich import print as rprint
 import sys
 
+# Import modules
 from crypto_engine import HybridCryptoEngine
 from key_manager import KeyManager
 from file_manager import FileManager
+from session_manager import SessionManager  # <-- New Module
 
 app = typer.Typer(
     help="🔐 CLI File Storage dengan Hybrid Encryption (Modified Caesar + RSA)",
@@ -20,45 +22,117 @@ console = Console()
 
 # Setup directories
 BASE_DIR = Path(__file__).parent / "secure_storage"
-KEYS_DIR = BASE_DIR / "keys"
 STORAGE_DIR = BASE_DIR / "encrypted_files"
 
-# Initialize managers
-key_manager = KeyManager(KEYS_DIR)
+# Initialize Global Managers
+# Note: KeyManager tidak di-init global lagi karena path-nya dinamis tergantung user
+session_manager = SessionManager(BASE_DIR)
 file_manager = FileManager(STORAGE_DIR)
 
 
+# --- Helper Functions ---
+def get_key_manager() -> KeyManager:
+    """Helper untuk mendapatkan KeyManager milik user yang sedang login"""
+    user_key_dir = session_manager.get_user_key_dir()
+    return KeyManager(user_key_dir)
+
 def get_crypto_engine() -> HybridCryptoEngine:
-    """Get initialized crypto engine with keys"""
-    private_key, public_key = key_manager.load_keys()
+    """Get initialized crypto engine dengan kunci user aktif"""
+    km = get_key_manager()
+    private_key, public_key = km.load_keys()
+    
     if not private_key or not public_key:
-        console.print("[red]❌ Keys not found! Please run 'init' first.[/red]")
+        current_user = session_manager.get_current_user()
+        console.print(f"[red]❌ Keys not found for user: [bold]{current_user}[/bold]![/red]")
+        console.print("[yellow]Please run 'init' first to generate keys for this user.[/yellow]")
         raise typer.Exit(1)
     return HybridCryptoEngine(private_key, public_key)
 
 
+# --- User Management Commands (New) ---
+
+@app.command()
+def login(username: str):
+    """Switch user / Login dengan profile berbeda"""
+    users = session_manager.list_users()
+    
+    # Auto-register logic (opsional, untuk kemudahan)
+    if username not in users:
+        console.print(f"[yellow]⚠️  User '{username}' belum ada.[/yellow]")
+        console.print(f"Gunakan [bold]register {username}[/bold] untuk membuat baru.")
+        raise typer.Exit(1)
+
+    session_manager.login(username)
+    console.print(f"\n[green]✅ Login Successful![/green]")
+    console.print(f"👤 Active User: [bold cyan]{username}[/bold cyan]")
+    console.print(f"🔑 Key Path: {session_manager.get_user_key_dir()}\n")
+
+@app.command()
+def register(username: str):
+    """Register user baru dan otomatis login"""
+    users = session_manager.list_users()
+    if username in users:
+        console.print(f"[red]❌ User '{username}' sudah terdaftar![/red]")
+        return
+
+    session_manager.login(username) # Creates folder automatically
+    console.print(f"\n[green]✅ User '{username}' created successfully![/green]")
+    console.print("[yellow]🚀 Please run 'init' to generate your RSA keys.[/yellow]\n")
+
+@app.command()
+def whoami():
+    """Cek user yang sedang aktif"""
+    user = session_manager.get_current_user()
+    console.print(Panel(
+        f"[bold]User:[/bold] {user}\n"
+        f"[bold]Keys:[/bold] {session_manager.get_user_key_dir()}",
+        title="👤 Current Session",
+        border_style="cyan"
+    ))
+
+@app.command()
+def users():
+    """List semua user yang terdaftar"""
+    user_list = session_manager.list_users()
+    current = session_manager.get_current_user()
+    
+    table = Table(title="👥 Registered Users")
+    table.add_column("Username", style="cyan")
+    table.add_column("Status", style="green")
+
+    for u in user_list:
+        status = "Active 👈" if u == current else ""
+        table.add_row(u, status)
+    console.print(table)
+
+
+# --- Core Commands (Updated for Multi-User) ---
+
 @app.command()
 def init():
-    """Initialize storage dan generate RSA keys"""
-    console.print("\n[bold cyan]🚀 Initializing Secure Storage System[/bold cyan]\n")
+    """Initialize storage dan generate RSA keys untuk User Aktif"""
+    current_user = session_manager.get_current_user()
+    km = get_key_manager() # Load key manager dinamis
+
+    console.print(f"\n[bold cyan]🚀 Initializing Secure Storage for: {current_user}[/bold cyan]\n")
 
     # Create directories
     BASE_DIR.mkdir(parents=True, exist_ok=True)
 
     # Check if keys already exist
-    if key_manager.keys_exist():
-        console.print("[yellow]⚠️  Keys already exist![/yellow]")
-        overwrite = typer.confirm("Do you want to generate new keys? (This will invalidate all encrypted files)")
+    if km.keys_exist():
+        console.print("[yellow]⚠️  Keys already exist for this user![/yellow]")
+        overwrite = typer.confirm("Do you want to generate new keys? (This will invalidate files encrypted by this user)")
         if not overwrite:
             console.print("[green]✅ Using existing keys[/green]")
             return
 
     # Generate keys
-    key_manager.generate_key_pair(key_size=2048)
+    km.generate_key_pair(key_size=2048)
 
     console.print(f"\n[green]✅ Storage initialized successfully![/green]")
     console.print(f"📁 Storage location: {STORAGE_DIR}")
-    console.print(f"🔑 Keys location: {KEYS_DIR}\n")
+    console.print(f"🔑 Keys location: {session_manager.get_user_key_dir()}\n")
 
     info_panel = Panel(
         "[bold]Encryption Method:[/bold]\n"
@@ -73,8 +147,9 @@ def init():
 
 @app.command()
 def encrypt(file_path: str):
-    """Encrypt dan simpan file ke storage"""
+    """Encrypt dan simpan file ke storage (menggunakan kunci User Aktif)"""
     source_path = Path(file_path)
+    current_user = session_manager.get_current_user()
 
     # Validate file
     if not source_path.exists():
@@ -86,6 +161,7 @@ def encrypt(file_path: str):
         raise typer.Exit(1)
 
     console.print(f"\n[cyan]🔒 Encrypting file: {source_path.name}[/cyan]")
+    console.print(f"[dim]👤 User context: {current_user}[/dim]")
 
     try:
         # Read file
@@ -93,7 +169,7 @@ def encrypt(file_path: str):
         file_size_mb = len(file_content) / (1024 * 1024)
         console.print(f"📄 File size: {file_size_mb:.2f} MB")
 
-        # Get crypto engine
+        # Get crypto engine (Dynamic based on user)
         crypto_engine = get_crypto_engine()
 
         # Encrypt
@@ -117,8 +193,9 @@ def encrypt(file_path: str):
 
 @app.command()
 def decrypt(file_id: str, output_path: str):
-    """Decrypt file dari storage"""
-    console.print(f"\n[cyan]🔓 Decrypting file ID: {file_id}[/cyan]\n")
+    """Decrypt file dari storage (Hanya berhasil jika User Aktif = Pemilik File)"""
+    console.print(f"\n[cyan]🔓 Decrypting file ID: {file_id}[/cyan]")
+    console.print(f"[dim]👤 Using keys from user: {session_manager.get_current_user()}[/dim]\n")
 
     try:
         # Load encrypted file
@@ -144,7 +221,9 @@ def decrypt(file_id: str, output_path: str):
         console.print(f"📊 File size: {file_size_mb:.2f} MB\n")
 
     except ValueError as e:
+        # Menangani error integritas atau salah kunci
         console.print(f"[red]❌ Decryption failed: {str(e)}[/red]")
+        console.print("[yellow]💡 Hint: Are you logged in as the correct user? Only the user who encrypted the file can decrypt it.[/yellow]")
         raise typer.Exit(1)
     except Exception as e:
         console.print(f"[red]❌ Error: {str(e)}[/red]")
@@ -161,7 +240,7 @@ def list():
         return
 
     # Create table
-    table = Table(title="\n🔐 Encrypted Files in Storage", show_header=True, header_style="bold cyan")
+    table = Table(title="\n🔐 Encrypted Files in Storage (Shared)", show_header=True, header_style="bold cyan")
     table.add_column("File ID", style="yellow", width=10)
     table.add_column("Original Filename", style="green")
     table.add_column("Size", style="cyan", justify="right")
@@ -220,10 +299,13 @@ def delete(file_id: str):
 
 @app.command()
 def keygen():
-    """Generate new RSA key pair"""
-    console.print("\n[bold cyan]🔑 Generate New RSA Key Pair[/bold cyan]\n")
+    """Generate new RSA key pair for Current User"""
+    km = get_key_manager()
+    current_user = session_manager.get_current_user()
 
-    if key_manager.keys_exist():
+    console.print(f"\n[bold cyan]🔑 Generate New RSA Key Pair for: {current_user}[/bold cyan]\n")
+
+    if km.keys_exist():
         console.print("[red]⚠️  WARNING: Keys already exist![/red]")
         console.print("[red]Generating new keys will make all encrypted files unrecoverable![/red]\n")
 
@@ -233,25 +315,32 @@ def keygen():
             return
 
     # Generate keys
-    key_manager.generate_key_pair(key_size=2048)
+    km.generate_key_pair(key_size=2048)
 
     console.print("\n[green]✅ New key pair generated successfully![/green]\n")
 
 
 @app.command()
 def info():
-    """Show system information"""
+    """Show system information & Current User"""
     console.print("\n[bold cyan]ℹ️  System Information[/bold cyan]\n")
 
-    # Key info
-    key_info = key_manager.get_key_info()
+    # Current User Info
+    current_user = session_manager.get_current_user()
+    km = get_key_manager()
+    key_info = km.get_key_info()
+
+    user_status = "[green]Loaded[/green]" if key_info else "[red]Missing Keys (Run init)[/red]"
+
+    console.print(f"[bold]👤 User Context:[/bold] {current_user}")
+    
     if key_info:
         console.print("[bold]🔑 RSA Keys:[/bold]")
         console.print(f"   Key size: {key_info['key_size']} bits")
         console.print(f"   Private key: {key_info['private_key_path']}")
         console.print(f"   Public key: {key_info['public_key_path']}")
     else:
-        console.print("[yellow]🔑 No keys found (run 'init' first)[/yellow]")
+        console.print(f"[yellow]🔑 No keys found for user '{current_user}'[/yellow]")
 
     console.print()
 

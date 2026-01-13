@@ -1,9 +1,9 @@
 {
-  "d5f3a7cc": {
-    "original_filename": "test_document.txt",
-    "encrypted_filename": "d5f3a7cc.enc",
-    "metadata_filename": "d5f3a7cc.meta",
-    "timestamp": "2026-01-09T14:39:01.473982+00:00",
-    "size": 147
+  "9d0c4624": {
+    "original_filename": "contoh.txt",
+    "encrypted_filename": "9d0c4624.enc",
+    "metadata_filename": "9d0c4624.meta",
+    "timestamp": "2026-01-13T17:09:23.715700+00:00",
+    "size": 18
   }
 }
