@@ -1,4 +1,5 @@
 # 🔐 Hybrid CLI Storage
+
 Secure File Storage with Hybrid Encryption (Modified Caesar + RSA)
 
 ---
@@ -8,6 +9,7 @@ Secure File Storage with Hybrid Encryption (Modified Caesar + RSA)
 **Hybrid CLI Storage** adalah aplikasi **Command Line Interface (CLI)** berbasis Python untuk **menyimpan dan mengelola file secara aman** menggunakan metode **enkripsi hybrid**.
 
 Aplikasi ini mengombinasikan:
+
 - **Modified Caesar Cipher** (kriptografi klasik yang dimodifikasi) untuk enkripsi data
 - **RSA 2048-bit** (kriptografi modern) untuk perlindungan metadata dan kunci
 
@@ -50,6 +52,10 @@ Install dependency dari file berikut: app/backend/requirements.txt
 
 ## 🚀 Installation
 
+Ikuti langkah ini agar aplikasi dapat dijalankan dari folder mana saja sebagai command global.
+
+### 1️⃣ Clone & Install Dependencies
+
 ```bash
 # Clone repository
 git clone <repository_url>
@@ -62,66 +68,100 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 ```
-  
+
+### 2️⃣ Setup Global Command (Linux/macOS)
+
+Agar tidak perlu mencari folder aplikasi setiap saat, buat command global hybrid-cli-storage:
+
+```bash
+# 1. Pastikan script peluncur memiliki izin eksekusi
+chmod +x hybrid-cli-storage
+
+# 2. Buat symbolic link ke sistem bin (membutuhkan sudo)
+sudo ln -sf "$PWD/hybrid-cli-storage" /usr/local/bin/hybrid-cli-storage
+
+# 3. Verifikasi instalasi
+hybrid-cli-storage --help
+```
+
 ---
-  
+
 ## ▶️ Usage
-  
+
 ### 1️⃣ Initialize Storage (Required)
+
 Generate RSA Keys dan setup storage
+
 ```bash
-python cli_storage.py init
+hybrid-cli-storage init
 ```
+
 ### 2️⃣ Encrypt File
+
 ```bash
-python cli_storage.py encrypt <file_path>
+hybrid-cli-storage encrypt <file_path>
 ```
-contoh : 
+
+contoh :
+
 ```bash
-python cli_storage.py encrypt /home/user/document.pdf
+hybrid-cli-storage encrypt /home/user/document.pdf
 ```
+
 ### 3️⃣ List Encrypted Files
+
 ```bash
-python cli_storage.py list
+hybrid-cli-storage list
 ```
+
 ### 4️⃣ Decrypt File
+
 ```bash
-python cli_storage.py decrypt <file_id> <output_path>
+hybrid-cli-storage decrypt <file_id> <output_path>
 ```
-contoh : 
+
+contoh:
+
 ```bash
-python cli_storage.py decrypt a1b2c3d4 /tmp/restored.pdf
+hybrid-cli-storage decrypt a1b2c3d4 /tmp/restored_document.pdf
 ```
+
 ### 5️⃣ Delete File
+
 ```bash
-python cli_storage.py delete <file_id>
+hybrid-cli-storage delete <file_id>
 ```
+
 ### 6️⃣ System Information
+
 ```bash
-python cli_storage.py info
+hybrid-cli-storage info
 ```
+
 ### 7️⃣ Generate New RSA Keys (⚠️ Warning)
+
 ```bash
-python cli_storage.py keygen
+hybrid-cli-storage keygen
 ```
+
 **Warning:** Key baru akan membuat file lama tidak bisa didekripsi
-  
+
 ---
-  
+
 ## 🔐 Encryption Flow
 
 File Asli
-   ↓
+↓
 Modified Caesar Cipher (Dynamic Shift)
-   ↓
+↓
 Data Terenkripsi
-   ↓
+↓
 Metadata → RSA 2048-bit Encryption
-   ↓
+↓
 Stored Securely
-  
+
 ---
-  
+
 ## 📁 Project Structure
 
 app/backend/ \
@@ -131,11 +171,11 @@ app/backend/ \
 ├── file_manager.py \
 ├── requirements.txt \
 └── secure_storage/ \
-   <t>├── keys/ \
-   <t>└── encrypted_files/.
-    
+ <br>├── keys/ \
+ <br>└── encrypted_files/.
+
 ---
-  
+
 ## 🔒 Security Notes
 
 - RSA 2048-bit + OAEP (SHA-256)
@@ -155,13 +195,13 @@ app/backend/ \
 ---
 
 ## 🎓 Academic Purpose
+
 Project ini dibuat sebagai implementasi kriptografi hybrid untuk kebutuhan pembelajaran dan tugas akhir mata kuliah kriptografi.
 
---- 
- 
+---
+
 ## 👤 Author
 
 **Angela Echa Naresti**\
 A11.2024.15971\
 A11.43UG1.
-
