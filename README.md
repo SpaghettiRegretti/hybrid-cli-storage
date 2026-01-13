@@ -172,7 +172,7 @@ app/backend/ \
 ├── requirements.txt \
 └── secure_storage/ \
 ├── keys/ \
-└── encrypted_files/\
+└── encrypted_files/.
 
 ---
 
