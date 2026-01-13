@@ -1,12 +1,14 @@
 #!/bin/bash
 
-# 1. Define where the project lives
-# Replace this with your actual output from 'pwd'
+# 1. Lokasi Project (Backend)
 PROJECT_DIR="/home/aen/hybrid-cli-storage/app/backend"
 
-# 2. Enter the directory (Fixes import errors for crypto_engine, etc.)
+# 2. Lokasi Python KHUSUS milik project ini
+# Ini akan memaksa script memakai library yang benar, meski kamu sedang di environment lain
+VENV_PYTHON="/home/aen/hybrid-cli-storage/venv/bin/python"
+
+# 3. Masuk ke folder project
 cd "$PROJECT_DIR"
 
-# 3. Run the python script, passing all arguments ($@) to it
-# If you use a virtual environment, use "venv/bin/python" instead of just "python"
-python3 cli_storage.py "$@"
+# 4. Jalankan script menggunakan Python khusus tadi
+"$VENV_PYTHON" cli_storage.py "$@"
