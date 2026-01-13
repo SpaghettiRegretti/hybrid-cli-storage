@@ -102,7 +102,7 @@ hybrid-cli-storage init
 hybrid-cli-storage encrypt <file_path>
 ```
 
-contoh :
+contoh:
 
 ```bash
 hybrid-cli-storage encrypt /home/user/document.pdf
