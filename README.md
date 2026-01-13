@@ -171,8 +171,8 @@ app/backend/ \
 ├── file_manager.py \
 ├── requirements.txt \
 └── secure_storage/ \
- <br>├── keys/ \
- <br>└── encrypted_files/.
+├── keys/ \
+└── encrypted_files/\
 
 ---
 
